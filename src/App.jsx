@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 import Beneficiaries from "./pages/Beneficiaries";
@@ -23,10 +23,46 @@ const initialPeople = [
 
 function App() {
   const [activePage, setActivePage] = useState("Overview");
-  const [language, setLanguage] = useState("English");
-  const [people, setPeople] = useState(initialPeople);
+  const [language, setLanguage] = useState(() => {
+    try {
+      return localStorage.getItem("poshan_language") || "English";
+    } catch {
+      return "English";
+    }
+  });
 
-  const t = translations[language];
+  const [people, setPeople] = useState(() => {
+    try {
+      const saved = localStorage.getItem("poshan_beneficiaries");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not load beneficiaries from localStorage", err);
+    }
+    return initialPeople;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("poshan_beneficiaries", JSON.stringify(people));
+    } catch (err) {
+      console.warn("Could not save beneficiaries to localStorage", err);
+    }
+  }, [people]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("poshan_language", language);
+    } catch (err) {
+      console.warn("Could not save language to localStorage", err);
+    }
+  }, [language]);
+
+  const t = translations[language] || translations.English;
 
   const needsReviewCount = people.filter(
     (p) => p.status === "Review" || p.status === "Follow-up"

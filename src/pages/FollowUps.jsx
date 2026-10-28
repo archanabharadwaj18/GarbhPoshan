@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const initialFollowUps = [
   { id: "FU001", name: "Kavya", reason: "Meal record needs verification", due: "Today", status: "Pending" },
@@ -9,8 +9,28 @@ const initialFollowUps = [
 ];
 
 export default function FollowUps() {
-  const [items, setItems] = useState(initialFollowUps);
+  const [items, setItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem("poshan_followups");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return initialFollowUps;
+  });
+
   const [filter, setFilter] = useState("All");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("poshan_followups", JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+  }, [items]);
 
   const visibleItems = items.filter((item) =>
     filter === "All" || item.status === filter

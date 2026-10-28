@@ -13,10 +13,38 @@ export default function Beneficiaries({ people, setPeople }) {
     phone: "",
   });
 
+  const [errors, setErrors] = useState({});
+  const [notification, setNotification] = useState("");
+
   const filtered = people.filter((p) =>
     `${p.name} ${p.id}`.toLowerCase().includes(search.toLowerCase()) &&
     (status === "All" || p.status === status)
   );
+
+  function validateForm() {
+    const errs = {};
+    const trimmedName = newPerson.name.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      errs.name = "Name must be at least 2 characters long.";
+    }
+
+    const ageNum = Number(newPerson.age);
+    if (!newPerson.age || isNaN(ageNum) || ageNum < 10 || ageNum > 60) {
+      errs.age = "Age must be between 10 and 60 years.";
+    }
+
+    const weekNum = Number(newPerson.week);
+    if (!newPerson.week || isNaN(weekNum) || weekNum < 1 || weekNum > 42) {
+      errs.week = "Pregnancy week must be between 1 and 42.";
+    }
+
+    const phoneTrimmed = newPerson.phone.trim();
+    if (!/^[0-9]{10}$/.test(phoneTrimmed)) {
+      errs.phone = "Contact number must be exactly 10 digits.";
+    }
+
+    return errs;
+  }
 
   if (showForm) {
     return (
@@ -29,7 +57,10 @@ export default function Beneficiaries({ people, setPeople }) {
 
           <button
             className="secondary-button profile-back"
-            onClick={() => setShowForm(false)}
+            onClick={() => {
+              setShowForm(false);
+              setErrors({});
+            }}
           >
             Cancel
           </button>
@@ -40,8 +71,19 @@ export default function Beneficiaries({ people, setPeople }) {
           onSubmit={(event) => {
             event.preventDefault();
 
+            const formErrors = validateForm();
+            if (Object.keys(formErrors).length > 0) {
+              setErrors(formErrors);
+              return;
+            }
+
+            const maxId = people.reduce((max, p) => {
+              const num = parseInt(String(p.id).replace(/\D/g, ""), 10);
+              return isNaN(num) ? max : Math.max(max, num);
+            }, 0);
+
             const person = {
-              id: `MN${String(people.length + 1).padStart(3, "0")}`,
+              id: `MN${String(maxId + 1).padStart(3, "0")}`,
               name: newPerson.name.trim(),
               age: Number(newPerson.age),
               week: Number(newPerson.week),
@@ -50,11 +92,13 @@ export default function Beneficiaries({ people, setPeople }) {
               status: "On Track",
             };
 
-            setPeople((prev) => [...prev, person]);
+            setPeople((prev) => [person, ...prev]);
             setSearch("");
             setStatus("All");
             setNewPerson({ name: "", age: "", week: "", phone: "" });
+            setErrors({});
             setShowForm(false);
+            setNotification(`Beneficiary ${person.name} (${person.id}) registered successfully.`);
           }}
         >
           <label>
@@ -63,11 +107,13 @@ export default function Beneficiaries({ people, setPeople }) {
               required
               minLength={2}
               value={newPerson.name}
-              onChange={(e) =>
-                setNewPerson({ ...newPerson, name: e.target.value })
-              }
+              onChange={(e) => {
+                setNewPerson({ ...newPerson, name: e.target.value });
+                if (errors.name) setErrors({ ...errors, name: null });
+              }}
               placeholder="Enter full name"
             />
+            {errors.name && <span className="form-error">{errors.name}</span>}
           </label>
 
           <label>
@@ -78,11 +124,13 @@ export default function Beneficiaries({ people, setPeople }) {
               min="10"
               max="60"
               value={newPerson.age}
-              onChange={(e) =>
-                setNewPerson({ ...newPerson, age: e.target.value })
-              }
+              onChange={(e) => {
+                setNewPerson({ ...newPerson, age: e.target.value });
+                if (errors.age) setErrors({ ...errors, age: null });
+              }}
               placeholder="Age in years"
             />
+            {errors.age && <span className="form-error">{errors.age}</span>}
           </label>
 
           <label>
@@ -93,11 +141,13 @@ export default function Beneficiaries({ people, setPeople }) {
               min="1"
               max="42"
               value={newPerson.week}
-              onChange={(e) =>
-                setNewPerson({ ...newPerson, week: e.target.value })
-              }
+              onChange={(e) => {
+                setNewPerson({ ...newPerson, week: e.target.value });
+                if (errors.week) setErrors({ ...errors, week: null });
+              }}
               placeholder="1–42"
             />
+            {errors.week && <span className="form-error">{errors.week}</span>}
           </label>
 
           <label>
@@ -107,18 +157,23 @@ export default function Beneficiaries({ people, setPeople }) {
               type="tel"
               pattern="[0-9]{10}"
               value={newPerson.phone}
-              onChange={(e) =>
-                setNewPerson({ ...newPerson, phone: e.target.value })
-              }
+              onChange={(e) => {
+                setNewPerson({ ...newPerson, phone: e.target.value });
+                if (errors.phone) setErrors({ ...errors, phone: null });
+              }}
               placeholder="10-digit mobile number"
             />
+            {errors.phone && <span className="form-error">{errors.phone}</span>}
           </label>
 
           <div className="form-actions">
             <button
               type="button"
               className="secondary-button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setErrors({});
+              }}
             >
               Cancel
             </button>
@@ -174,6 +229,13 @@ export default function Beneficiaries({ people, setPeople }) {
           </button>
         </div>
       </div>
+
+      {notification && (
+        <div className="success-banner">
+          <span>✓ {notification}</span>
+          <button className="text-button" onClick={() => setNotification("")}>✕</button>
+        </div>
+      )}
 
       <div className="page-filters">
         <input
