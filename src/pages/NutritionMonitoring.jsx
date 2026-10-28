@@ -7,12 +7,15 @@ const meals = [
 ];
 
 export default function NutritionMonitoring() {
+  const reviewCount = meals.filter((m) => m.status === "Review").length;
+  const hasPendingConfirmation = meals.some((m) => m.status === "Review");
+
   return (
     <>
       <div className="stats-grid">
-        <div className="stat-card"><div className="stat-label">Meal records</div><div className="stat-value">342</div><div className="stat-note">Illustrative total</div></div>
-        <div className="stat-card"><div className="stat-label">Records to review</div><div className="stat-value">12</div><div className="stat-note">Require verification</div></div>
-        <div className="stat-card"><div className="stat-label">Food confirmation</div><div className="stat-value">Pending</div><div className="stat-note">Some entries need confirmation</div></div>
+        <div className="stat-card"><div className="stat-label">Meal records</div><div className="stat-value">{meals.length}</div><div className="stat-note">Sample records shown</div></div>
+        <div className="stat-card"><div className="stat-label">Records to review</div><div className="stat-value">{reviewCount}</div><div className="stat-note">Require verification</div></div>
+        <div className="stat-card"><div className="stat-label">Food confirmation</div><div className="stat-value">{hasPendingConfirmation ? "Pending" : "Up to date"}</div><div className="stat-note">Some entries need confirmation</div></div>
       </div>
 
       <section className="panel page-panel">

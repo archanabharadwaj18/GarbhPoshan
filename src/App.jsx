@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import "./App.css";
 
 import Beneficiaries from "./pages/Beneficiaries";
 import NutritionMonitoring from "./pages/NutritionMonitoring";
 import FollowUps from "./pages/FollowUps";
+import { translations } from "./translation";
 
 const navItems = [
   { label: "Overview", icon: "▦" },
@@ -13,9 +13,24 @@ const navItems = [
   { label: "Follow-ups", icon: "☷" },
 ];
 
+const initialPeople = [
+  { id: "MN001", name: "Ananya", age: 24, week: 12, meals: 18, status: "On Track" },
+  { id: "MN002", name: "Kavya", age: 27, week: 24, meals: 12, status: "Review" },
+  { id: "MN003", name: "Lakshmi", age: 22, week: 30, meals: 21, status: "On Track" },
+  { id: "MN004", name: "Meera", age: 29, week: 18, meals: 9, status: "Follow-up" },
+  { id: "MN005", name: "Divya", age: 25, week: 34, meals: 16, status: "On Track" },
+];
+
 function App() {
   const [activePage, setActivePage] = useState("Overview");
   const [language, setLanguage] = useState("English");
+  const [people, setPeople] = useState(initialPeople);
+
+  const t = translations[language];
+
+  const needsReviewCount = people.filter(
+    (p) => p.status === "Review" || p.status === "Follow-up"
+  ).length;
 
   return (
     <div className="app-shell">
@@ -23,12 +38,12 @@ function App() {
         <div className="brand">
           <div className="brand-icon">✚</div>
           <div>
-            <h2>Poshan Care</h2>
-            <p>Maternal wellness</p>
+            <h2>{t.appName}</h2>
+            <p>{t.tagline}</p>
           </div>
         </div>
 
-        <div className="nav-label">WORKSPACE</div>
+        <div className="nav-label">{t.workspace}</div>
 
         <nav className="navigation">
           {navItems.map((item) => (
@@ -46,14 +61,14 @@ function App() {
         <div className="sidebar-bottom">
           <div className="support-card">
             <div className="support-icon">♡</div>
-            <h3>Every meal matters</h3>
-            <p>Supporting healthier pregnancies, one meal at a time.</p>
+            <h3>{t.supportCardTitle}</h3>
+            <p>{t.supportCardText}</p>
           </div>
           <div className="worker-profile">
             <div className="avatar">AS</div>
             <div>
-              <strong>ASHA Worker</strong>
-              <p>Field worker account</p>
+              <strong>{t.workerName}</strong>
+              <p>{t.workerSubtitle}</p>
             </div>
           </div>
         </div>
@@ -61,7 +76,7 @@ function App() {
 
       <main className="main-content">
         <header className="topbar">
-          <div className="breadcrumb">Workspace <span>/</span> {activePage}</div>
+          <div className="breadcrumb">{t.breadcrumbWorkspace} <span>/</span> {activePage}</div>
           <label className="language-select">
             文
             <select value={language} onChange={(e) => setLanguage(e.target.value)}>
@@ -75,14 +90,14 @@ function App() {
         <section className="page-content">
           <div className="welcome-row">
             <div>
-              <div className="eyebrow">MATERNAL HEALTH • FIELD DASHBOARD</div>
+              <div className="eyebrow">{t.eyebrow}</div>
               <h1>
                 {activePage === "Overview"
-                  ? "Good morning, ASHA Worker"
+                  ? t.welcomeGreeting
                   : activePage}
               </h1>
               <p className="page-subtitle">
-                Supporting maternal nutrition through accessible meal tracking.
+                {t.pageSubtitle}
               </p>
             </div>
           </div>
@@ -90,16 +105,16 @@ function App() {
           {activePage === "Overview" && (
             <>
               <div className="stats-grid">
-                <StatCard label="Total beneficiaries" value="128" note="Assigned to your area" />
-                <StatCard label="Meals recorded" value="342" note="Illustrative sample total" />
-                <StatCard label="Needs review" value="12" note="Records to check" />
-                <StatCard label="Pending sync" value="08" note="Illustrative offline records" />
+                <StatCard label={t.statTotalBeneficiaries} value={people.length} note={t.statNoteAssigned} />
+                <StatCard label={t.statMealsRecorded} value="342" note={t.statNoteIllustrative} />
+                <StatCard label={t.statNeedsReview} value={needsReviewCount} note={t.statNoteRecordsToCheck} />
+                <StatCard label={t.statPendingSync} value="08" note={t.statNoteOfflineRecords} />
               </div>
               <section className="panel page-panel">
                 <div className="panel-heading">
                   <div>
-                    <h2>Welcome to Poshan Care</h2>
-                    <p>Select a section from the sidebar to get started.</p>
+                    <h2>{t.welcomeHeading}</h2>
+                    <p>{t.welcomeText}</p>
                   </div>
                 </div>
                 <div className="overview-links">
@@ -119,16 +134,18 @@ function App() {
             </>
           )}
 
-          {activePage === "Beneficiaries" && <Beneficiaries />}
+          {activePage === "Beneficiaries" && (
+            <Beneficiaries people={people} setPeople={setPeople} />
+          )}
           {activePage === "Nutrition Monitoring" && <NutritionMonitoring />}
           {activePage === "Follow-ups" && <FollowUps />}
 
           <footer className="page-footer">
-            <span>Poshan Care · Maternal Nutrition Tracking</span>
-            <span className="offline-indicator"><span /> Frontend prototype</span>
+            <span>{t.footerBrand}</span>
+            <span className="offline-indicator"><span /> {t.footerStatus}</span>
           </footer>
           <p className="demo-note">
-            Demo only. All beneficiary information and counts are illustrative sample data.
+            {t.demoNote}
           </p>
         </section>
       </main>
