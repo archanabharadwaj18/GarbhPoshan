@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Beneficiaries({ people, setPeople }) {
+export default function Beneficiaries({ t = {}, people, setPeople }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selected, setSelected] = useState(null);
@@ -21,26 +21,39 @@ export default function Beneficiaries({ people, setPeople }) {
     (status === "All" || p.status === status)
   );
 
+  function getStatusLabel(st) {
+    if (st === "On Track") return t.status_on_track || "On Track";
+    if (st === "Review") return t.status_review || "Review";
+    if (st === "Follow-up") return t.status_follow_up || "Follow-up";
+    return st;
+  }
+
+  function getTrimesterLabel(week) {
+    if (week <= 13) return t.trimester_first || "First trimester";
+    if (week <= 27) return t.trimester_second || "Second trimester";
+    return t.trimester_third || "Third trimester";
+  }
+
   function validateForm() {
     const errs = {};
     const trimmedName = newPerson.name.trim();
     if (!trimmedName || trimmedName.length < 2) {
-      errs.name = "Name must be at least 2 characters long.";
+      errs.name = t.err_name || "Name must be at least 2 characters long.";
     }
 
     const ageNum = Number(newPerson.age);
     if (!newPerson.age || isNaN(ageNum) || ageNum < 10 || ageNum > 60) {
-      errs.age = "Age must be between 10 and 60 years.";
+      errs.age = t.err_age || "Age must be between 10 and 60 years.";
     }
 
     const weekNum = Number(newPerson.week);
     if (!newPerson.week || isNaN(weekNum) || weekNum < 1 || weekNum > 42) {
-      errs.week = "Pregnancy week must be between 1 and 42.";
+      errs.week = t.err_week || "Pregnancy week must be between 1 and 42.";
     }
 
     const phoneTrimmed = newPerson.phone.trim();
     if (!/^[0-9]{10}$/.test(phoneTrimmed)) {
-      errs.phone = "Contact number must be exactly 10 digits.";
+      errs.phone = t.err_phone || "Contact number must be exactly 10 digits.";
     }
 
     return errs;
@@ -51,8 +64,8 @@ export default function Beneficiaries({ people, setPeople }) {
       <section className="panel page-panel">
         <div className="panel-heading">
           <div>
-            <h2>Add Beneficiary</h2>
-            <p>Register a beneficiary for maternal nutrition tracking.</p>
+            <h2>{t.form_title || "Add Beneficiary"}</h2>
+            <p>{t.form_subtitle || "Register a beneficiary for maternal nutrition tracking."}</p>
           </div>
 
           <button
@@ -62,7 +75,7 @@ export default function Beneficiaries({ people, setPeople }) {
               setErrors({});
             }}
           >
-            Cancel
+            {t.btn_cancel || "Cancel"}
           </button>
         </div>
 
@@ -98,11 +111,11 @@ export default function Beneficiaries({ people, setPeople }) {
             setNewPerson({ name: "", age: "", week: "", phone: "" });
             setErrors({});
             setShowForm(false);
-            setNotification(`Beneficiary ${person.name} (${person.id}) registered successfully.`);
+            setNotification(`${person.name} (${person.id}) ${t.msg_registered || "registered successfully."}`);
           }}
         >
           <label>
-            Beneficiary name
+            {t.label_name || "Beneficiary name"}
             <input
               required
               minLength={2}
@@ -111,13 +124,13 @@ export default function Beneficiaries({ people, setPeople }) {
                 setNewPerson({ ...newPerson, name: e.target.value });
                 if (errors.name) setErrors({ ...errors, name: null });
               }}
-              placeholder="Enter full name"
+              placeholder={t.placeholder_name || "Enter full name"}
             />
             {errors.name && <span className="form-error">{errors.name}</span>}
           </label>
 
           <label>
-            Age
+            {t.label_age || "Age"}
             <input
               required
               type="number"
@@ -128,13 +141,13 @@ export default function Beneficiaries({ people, setPeople }) {
                 setNewPerson({ ...newPerson, age: e.target.value });
                 if (errors.age) setErrors({ ...errors, age: null });
               }}
-              placeholder="Age in years"
+              placeholder={t.placeholder_age || "Age in years"}
             />
             {errors.age && <span className="form-error">{errors.age}</span>}
           </label>
 
           <label>
-            Pregnancy week
+            {t.label_week || "Pregnancy week"}
             <input
               required
               type="number"
@@ -145,13 +158,13 @@ export default function Beneficiaries({ people, setPeople }) {
                 setNewPerson({ ...newPerson, week: e.target.value });
                 if (errors.week) setErrors({ ...errors, week: null });
               }}
-              placeholder="1–42"
+              placeholder={t.placeholder_week || "1–42"}
             />
             {errors.week && <span className="form-error">{errors.week}</span>}
           </label>
 
           <label>
-            Contact number
+            {t.label_phone || "Contact number"}
             <input
               required
               type="tel"
@@ -161,7 +174,7 @@ export default function Beneficiaries({ people, setPeople }) {
                 setNewPerson({ ...newPerson, phone: e.target.value });
                 if (errors.phone) setErrors({ ...errors, phone: null });
               }}
-              placeholder="10-digit mobile number"
+              placeholder={t.placeholder_phone || "10-digit mobile number"}
             />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </label>
@@ -175,10 +188,10 @@ export default function Beneficiaries({ people, setPeople }) {
                 setErrors({});
               }}
             >
-              Cancel
+              {t.btn_cancel || "Cancel"}
             </button>
             <button type="submit" className="primary-button">
-              Save beneficiary
+              {t.btn_save || "Save beneficiary"}
             </button>
           </div>
         </form>
@@ -192,21 +205,21 @@ export default function Beneficiaries({ people, setPeople }) {
         <div className="panel-heading">
           <div>
             <h2>{selected.name}</h2>
-            <p>Beneficiary profile · {selected.id}</p>
+            <p>{t.profile_subtitle || "Beneficiary profile"} · {selected.id}</p>
           </div>
           <button className="secondary-button profile-back" onClick={() => setSelected(null)}>
-            ← Back to list
+            {t.profile_back || "← Back to list"}
           </button>
         </div>
         <div className="profile-details">
-          <div><span>Age</span><strong>{selected.age} years</strong></div>
-          <div><span>Pregnancy</span><strong>Week {selected.week}</strong></div>
-          <div><span>Trimester</span><strong>{selected.week <= 13 ? "First" : selected.week <= 27 ? "Second" : "Third"}</strong></div>
-          <div><span>Meals recorded</span><strong>{selected.meals}</strong></div>
-          <div><span>Record status</span><strong>{selected.status}</strong></div>
+          <div><span>{t.profile_label_age || "Age"}</span><strong>{selected.age} {t.years || "years"}</strong></div>
+          <div><span>{t.profile_label_pregnancy || "Pregnancy"}</span><strong>{t.week || "Week"} {selected.week}</strong></div>
+          <div><span>{t.profile_label_trimester || "Trimester"}</span><strong>{getTrimesterLabel(selected.week)}</strong></div>
+          <div><span>{t.profile_label_meals || "Meals recorded"}</span><strong>{selected.meals}</strong></div>
+          <div><span>{t.profile_label_status || "Record status"}</span><strong>{getStatusLabel(selected.status)}</strong></div>
         </div>
         <p className="page-hint">
-          This is sample profile data. Meal history and verified health information will be connected later.
+          {t.profile_hint || "This is sample profile data. Meal history and verified health information will be connected later."}
         </p>
       </section>
     );
@@ -216,16 +229,16 @@ export default function Beneficiaries({ people, setPeople }) {
     <section className="panel page-panel">
       <div className="panel-heading">
         <div>
-          <h2>Beneficiary directory</h2>
-          <p>Search and review your assigned beneficiaries.</p>
+          <h2>{t.dir_title || "Beneficiary directory"}</h2>
+          <p>{t.dir_subtitle || "Search and review your assigned beneficiaries."}</p>
         </div>
         <div className="directory-actions">
-          <span className="record-count">{filtered.length} records</span>
+          <span className="record-count">{filtered.length} {t.records_count || "records"}</span>
           <button
             className="primary-button"
             onClick={() => setShowForm(true)}
           >
-            + Add Beneficiary
+            {t.add_beneficiary || "+ Add Beneficiary"}
           </button>
         </div>
       </div>
@@ -240,34 +253,60 @@ export default function Beneficiaries({ people, setPeople }) {
       <div className="page-filters">
         <input
           className="page-input"
-          placeholder="Search by name or ID..."
+          placeholder={t.search_placeholder || "Search by name or ID..."}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="page-input" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option>All</option>
-          <option>On Track</option>
-          <option>Review</option>
-          <option>Follow-up</option>
+          <option value="All">{t.status_all || "All"}</option>
+          <option value="On Track">{t.status_on_track || "On Track"}</option>
+          <option value="Review">{t.status_review || "Review"}</option>
+          <option value="Follow-up">{t.status_follow_up || "Follow-up"}</option>
         </select>
       </div>
 
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>BENEFICIARY</th><th>PREGNANCY</th><th>MEALS</th><th>STATUS</th><th>ACTION</th></tr>
+            <tr>
+              <th>{t.th_beneficiary || "BENEFICIARY"}</th>
+              <th>{t.th_pregnancy || "PREGNANCY"}</th>
+              <th>{t.th_meals || "MEALS"}</th>
+              <th>{t.th_status || "STATUS"}</th>
+              <th>{t.th_action || "ACTION"}</th>
+            </tr>
           </thead>
           <tbody>
             {filtered.map((p) => (
               <tr key={p.id}>
-                <td><strong>{p.name}</strong><span className="cell-muted">{p.id} · {p.age} years</span></td>
-                <td>Week {p.week}<span className="cell-muted">{p.week <= 13 ? "First" : p.week <= 27 ? "Second" : "Third"} trimester</span></td>
+                <td>
+                  <strong>{p.name}</strong>
+                  <span className="cell-muted">{p.id} · {p.age} {t.years || "years"}</span>
+                </td>
+                <td>
+                  {t.week || "Week"} {p.week}
+                  <span className="cell-muted">{getTrimesterLabel(p.week)}</span>
+                </td>
                 <td>{p.meals}</td>
-                <td><span className={`status-pill ${p.status.toLowerCase().replace(" ", "-")}`}>{p.status}</span></td>
-                <td><button className="text-button" onClick={() => setSelected(p)}>View profile →</button></td>
+                <td>
+                  <span className={`status-pill ${p.status.toLowerCase().replace(" ", "-")}`}>
+                    {getStatusLabel(p.status)}
+                  </span>
+                </td>
+                <td>
+                  <button className="text-button" onClick={() => setSelected(p)}>
+                    {t.view_profile || "View profile →"}
+                  </button>
+                </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan="5" className="empty-state">No matching beneficiaries found.</td></tr>}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan="5" className="empty-state">
+                  {t.no_records || "No matching beneficiaries found."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -7,10 +7,10 @@ import FollowUps from "./pages/FollowUps";
 import { translations } from "./translation";
 
 const navItems = [
-  { label: "Overview", icon: "▦" },
-  { label: "Beneficiaries", icon: "♙" },
-  { label: "Nutrition Monitoring", icon: "♡" },
-  { label: "Follow-ups", icon: "☷" },
+  { id: "Overview", labelKey: "nav_overview", icon: "▦" },
+  { id: "Beneficiaries", labelKey: "nav_beneficiaries", icon: "♙" },
+  { id: "Nutrition Monitoring", labelKey: "nav_nutrition", icon: "♡" },
+  { id: "Follow-ups", labelKey: "nav_followups", icon: "☷" },
 ];
 
 const initialPeople = [
@@ -64,6 +64,9 @@ function App() {
 
   const t = translations[language] || translations.English;
 
+  const currentNav = navItems.find((n) => n.id === activePage);
+  const activeTitle = currentNav ? (t[currentNav.labelKey] || activePage) : activePage;
+
   const needsReviewCount = people.filter(
     (p) => p.status === "Review" || p.status === "Follow-up"
   ).length;
@@ -84,12 +87,12 @@ function App() {
         <nav className="navigation">
           {navItems.map((item) => (
             <button
-              key={item.label}
-              className={`nav-item ${activePage === item.label ? "active" : ""}`}
-              onClick={() => setActivePage(item.label)}
+              key={item.id}
+              className={`nav-item ${activePage === item.id ? "active" : ""}`}
+              onClick={() => setActivePage(item.id)}
             >
               <span className="nav-icon">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{t[item.labelKey] || item.id}</span>
             </button>
           ))}
         </nav>
@@ -112,7 +115,7 @@ function App() {
 
       <main className="main-content">
         <header className="topbar">
-          <div className="breadcrumb">{t.breadcrumbWorkspace} <span>/</span> {activePage}</div>
+          <div className="breadcrumb">{t.breadcrumbWorkspace} <span>/</span> {activeTitle}</div>
           <label className="language-select">
             文
             <select value={language} onChange={(e) => setLanguage(e.target.value)}>
@@ -130,7 +133,7 @@ function App() {
               <h1>
                 {activePage === "Overview"
                   ? t.welcomeGreeting
-                  : activePage}
+                  : activeTitle}
               </h1>
               <p className="page-subtitle">
                 {t.pageSubtitle}
@@ -157,11 +160,11 @@ function App() {
                   {navItems.slice(1).map((item) => (
                     <button
                       className="overview-link"
-                      key={item.label}
-                      onClick={() => setActivePage(item.label)}
+                      key={item.id}
+                      onClick={() => setActivePage(item.id)}
                     >
                       <span>{item.icon}</span>
-                      <strong>{item.label}</strong>
+                      <strong>{t[item.labelKey] || item.id}</strong>
                       <span>→</span>
                     </button>
                   ))}
@@ -171,10 +174,10 @@ function App() {
           )}
 
           {activePage === "Beneficiaries" && (
-            <Beneficiaries people={people} setPeople={setPeople} />
+            <Beneficiaries t={t} people={people} setPeople={setPeople} />
           )}
-          {activePage === "Nutrition Monitoring" && <NutritionMonitoring />}
-          {activePage === "Follow-ups" && <FollowUps />}
+          {activePage === "Nutrition Monitoring" && <NutritionMonitoring t={t} />}
+          {activePage === "Follow-ups" && <FollowUps t={t} />}
 
           <footer className="page-footer">
             <span>{t.footerBrand}</span>
